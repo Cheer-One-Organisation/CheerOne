@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Search, Filter, Users, MapPin, Heart, Star, TrendingUp } from "lucide-react";
+import {ArrowLeft, Search, Filter, Users, MapPin, Heart, Star, TrendingUp} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -234,7 +234,7 @@ const PublicGroups = () => {
         <Card className="p-8 text-center shadow-card gradient-hero text-white">
           <h3 className="text-xl font-semibold mb-2">Can't find the right group?</h3>
           <p className="mb-4 opacity-90">Create your own community and bring people together!</p>
-          <Button variant="secondary" size="lg" className="transition-bounce hover:scale-105">
+          <Button variant="secondary" size="lg" className="transition-bounce hover:scale-105" onClick={()=>navigate("/create-group-chat")}>
             Create New Group
           </Button>
         </Card>

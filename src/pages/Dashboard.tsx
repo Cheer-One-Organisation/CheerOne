@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import heroBanner from "@/assets/hero-banner.jpg";
 
-const Dashboard = () => {
+const Dashboard=()=> {
   const navigate = useNavigate();
 
   const features = [
