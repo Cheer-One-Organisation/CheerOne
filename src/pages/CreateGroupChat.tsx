@@ -2,18 +2,19 @@ import {useEffect} from "react";
 import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {Card} from "@/components/ui/card";
-import {ArrowLeft} from "lucide-react";
+import {ArrowLeft, PersonStandingIcon, PlusIcon, PlusSquareIcon} from "lucide-react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import {Avatar,AvatarFallback} from "@/components/ui/avatar";
 
 const CreateGroupChat =()=>{
 
     const navigate = useNavigate();
 
     const members = [
-       {id:1, name: "Anthea"},
-       {id:2, name: "Slavi"},
-       {id:3, name: "Rougette"}
+       {id:1, name: "Anthea", avatar:"A"},
+       {id:2, name: "Slavi",avatar:"A"},
+       {id:3, name: "Rougette",avatar:"A"}
     ]
 
     const tagOptions=[
@@ -66,13 +67,25 @@ const CreateGroupChat =()=>{
 
             <label>Tags: </label>
             <DropdownMenu>
+              
 
             </DropdownMenu>
 
+           
+
             {members.map((member)=>(
+              <div>
+              <Avatar>
                 <div>
-                    <p>{member.name}</p>
+                  <AvatarFallback>
+                    <p>{member.avatar}</p>
+                  </AvatarFallback> 
                 </div>
+                </Avatar>
+
+                <div>  <p>{member.name}</p></div>
+                </div>
+                
             )
 
             )}
@@ -85,6 +98,7 @@ const CreateGroupChat =()=>{
         </Card>
        
         
+        <Button className = "ml-10"><PlusIcon/>Create Group</Button>
           
 
 
