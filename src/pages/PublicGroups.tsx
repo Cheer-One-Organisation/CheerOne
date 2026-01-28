@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 
+
 const PublicGroups = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
