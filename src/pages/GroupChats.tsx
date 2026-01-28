@@ -5,7 +5,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-
 import { useNavigate } from "react-router-dom";
 
 const GroupChats = () => {
@@ -17,7 +16,7 @@ const GroupChats = () => {
     { id: 1, name: "College Friends", members: 8, lastMessage: "Hey everyone! 🎉", avatar: "CF" },
     { id: 2, name: "Work Team", members: 12, lastMessage: "Meeting at 3 PM", avatar: "WT" },
     { id: 3, name: "Family", members: 6, lastMessage: "Dinner this Sunday?", avatar: "FM" },
-    //{ id: 4, name: "Gaming Squad", members: 5, lastMessage: "New raid tonight!", avatar: "GS" },
+    { id: 4, name: "Gaming Squad", members: 5, lastMessage: "New raid tonight!", avatar: "GS" },
   ];
 
   const messages = [
@@ -50,7 +49,7 @@ const GroupChats = () => {
             </Button>
             <h1 className="text-xl font-semibold">Group Chats</h1>
             <div className="ml-auto">
-              <Button size="sm" className="gradient-primary text-primary-foreground" onClick={()=>navigate("/create-group-chat")}>
+              <Button size="sm" className="gradient-primary text-primary-foreground">
                 <Plus className="mr-2 h-4 w-4" />
                 New Group
               </Button>
