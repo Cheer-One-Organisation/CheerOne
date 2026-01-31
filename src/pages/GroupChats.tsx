@@ -42,7 +42,7 @@ const GroupChats = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
               className="transition-smooth"
             >
               <ArrowLeft className="h-4 w-4" />
