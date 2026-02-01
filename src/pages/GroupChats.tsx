@@ -49,7 +49,7 @@ const GroupChats = () => {
             </Button>
             <h1 className="text-xl font-semibold">Group Chats</h1>
             <div className="ml-auto">
-              <Button size="sm" className="gradient-primary text-primary-foreground">
+              <Button onClick={()=>navigate("/create-new-group")} size="sm" className="gradient-primary text-primary-foreground">
                 <Plus className="mr-2 h-4 w-4" />
                 New Group
               </Button>

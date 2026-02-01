@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { auth } from "../../firebase/firebase.js";
 import { useNavigate } from "react-router-dom";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup} from "firebase/auth";
 import { FcGoogle } from 'react-icons/fc'; 
 
 const SignIn = () => {
@@ -14,7 +14,7 @@ const SignIn = () => {
 
     try {
       await signInWithPopup(auth, provider);
-      navigate("/group-chats");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error signing in with Google:", error);
 
@@ -30,18 +30,19 @@ const SignIn = () => {
 
   
   return (
-    <div className="sign-in-container">
+    <section className="sign-in-container">
       <h1>Sign In</h1>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <button onClick={handleGoogleSignIn}>
+         {<FcGoogle size={24} style={{ marginLeft: "12px" }} />}
         Sign in with Google
-        {<FcGoogle size={24} style={{ marginLeft: "12px" }} />}
+       
       </button>
 
-      {/* You can add email/password fields later if needed */}
-    </div>
+     
+    </section>
   );
 };
 

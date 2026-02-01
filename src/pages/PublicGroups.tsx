@@ -111,7 +111,7 @@ const PublicGroups = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/dashboard")}
               className="transition-smooth"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -234,7 +234,7 @@ const PublicGroups = () => {
         <Card className="p-8 text-center shadow-card gradient-hero text-white">
           <h3 className="text-xl font-semibold mb-2">Can't find the right group?</h3>
           <p className="mb-4 opacity-90">Create your own community and bring people together!</p>
-          <Button variant="secondary" size="lg" className="transition-bounce hover:scale-105">
+          <Button onClick={() => navigate("/dashboard")} variant="secondary" size="lg" className="transition-bounce hover:scale-105" >
             Create New Group
           </Button>
         </Card>

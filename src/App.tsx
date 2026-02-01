@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
+import CreateNewGroup from "./pages/CreateNewGroup";
 import GroupChats from "./pages/GroupChats";
 import LocationFinder from "./pages/LocationFinder";
 import PublicGroups from "./pages/PublicGroups";
 import NotFound from "./pages/NotFound";
+
 
 const queryClient = new QueryClient();
 
@@ -24,6 +26,7 @@ const App = () => (
           <Route path="/group-chats" element={<GroupChats />} />
           <Route path="/location-finder" element={<LocationFinder />} />
           <Route path="/public-groups" element={<PublicGroups />} />
+          <Route path="/create-new-group" element={<CreateNewGroup/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
