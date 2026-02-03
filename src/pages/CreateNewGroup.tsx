@@ -193,7 +193,7 @@ const TAG_SUGGESTIONS = [
     </Label>
 
     <p className="text-xs text-muted-foreground">
-      {isPrivate
+      {!isPrivate
         ? "Only invited members can find and join this group"
         : "Anyone can discover and request to join this group"}
     </p>
@@ -337,6 +337,8 @@ const TAG_SUGGESTIONS = [
     </p>
 
     <Button
+
+    
       size="lg"
       disabled={!selectedFriends.length}
       onClick={() => {
@@ -350,9 +352,11 @@ const TAG_SUGGESTIONS = [
         };
 
         console.log("CREATE GROUP:", payload);
+
+        navigate("/group-chats");
       }}
     >
-      Create Group
+      I'm Happy With This !
     </Button>
   </div>
 </div>
