@@ -3,9 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import heroBanner from "@/assets/hero-banner.jpg";
+import { ArrowLeft } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+
+
+  const signOut=()=>{
+    //Write signout logic
+    navigate("/");
+
+  }
 
   const features = [
     {
@@ -25,7 +33,7 @@ const Dashboard = () => {
     {
       icon: Users,
       title: "Public Groups",
-      description: "Discover and join communities with shared interests",
+      description: "Discover and join communities",
       path: "/public-groups",
       gradient: "gradient-hero"
     }
@@ -37,9 +45,7 @@ const Dashboard = () => {
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
-              Cheer One
-            </h1>
+           <Button onClick={()=>signOut()}><ArrowLeft/>Logout</Button>
             <Button variant="outline" size="sm">
               <Bell className="mr-2 h-4 w-4" />
               Notifications
@@ -54,7 +60,7 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h2 className="text-4xl lg:text-6xl font-bold leading-tight">
-                Connect & Share
+                Cheer One
                 <span className="gradient-hero bg-clip-text text-transparent block">
                   Moments Together
                 </span>
@@ -68,7 +74,7 @@ const Dashboard = () => {
                   size="lg"
                   className="gradient-primary text-primary-foreground shadow-glow transition-bounce hover:scale-105"
                 >
-                  Start Chatting
+                  Continue Chatting
                 </Button>
                 <Button 
                   onClick={() => navigate("/location-finder")} 
@@ -114,7 +120,7 @@ const Dashboard = () => {
                 <h4 className="text-xl font-semibold mb-3">{feature.title}</h4>
                 <p className="text-muted-foreground mb-6">{feature.description}</p>
                 <Button variant="outline" className="w-full transition-smooth">
-                  Get Started
+                  View Chats
                 </Button>
               </Card>
             ))}
