@@ -1,15 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus,Users } from "lucide-react";
+import { ArrowLeft, Plus,Scroll,Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dropdown } from "react-day-picker";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { useState, useMemo } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { AvatarFallback } from "@/components/ui/avatar";
 import { MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { FcPlus } from "react-icons/fc";
+
 
 
 const CreateNewGroup =()=>{
@@ -33,6 +37,20 @@ const TAG_SUGGESTIONS = [
 
   const [tags, setTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [friend,setFriend] = useState("");
+
+  type Role = "member" | "admin";
+  const [friendRoles, setFriendRoles] = useState<Record<number, Role>>({});
+
+  const toggleRole = (friendId: number) => {
+  setFriendRoles(prev => ({
+    ...prev,
+    [friendId]: prev[friendId] === "admin" ? "member" : "admin",
+  }));
+};
+
+
 
   const filteredSuggestions = useMemo(() => {
     if (!inputValue) return [];
@@ -102,7 +120,6 @@ const TAG_SUGGESTIONS = [
 
     return(
         <section>
-      
             <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
         <section className="container mx-auto px-4 py-4">
           <section className="flex items-center gap-4">
@@ -115,34 +132,101 @@ const TAG_SUGGESTIONS = [
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-xl font-semibold">Create New Group</h1>
+
             
           </section>
         </section>
       </header>
 
+
+      {/*When a contact is selected it is shown in a vertically scrollable tray for top of the screen access*/}
+      {selectedFriends.length > 0 && (
+  <div className="sticky top-[72px] z-40 bg-card border-b px- py-3">
+    <ScrollArea className="w-full">
+      <div className="flex gap-4">
+        {selectedFriends.map((id) => {
+          const friend = friends.find(f => f.id === id);
+          if (!friend) return null;
+
+          return (
+            <div
+              key={id}
+              className="flex flex-col items-center gap-1 min-w-[64px]"
+            >
+              <div className="relative">
+                <Avatar className="h-12 w-12">
+                  <AvatarFallback className="gradient-primary text-primary-foreground">
+                    {friend.avatar}
+                  </AvatarFallback>
+                </Avatar>
+
+                <button
+                  onClick={() => toggleFriendSelection(id)}
+                  className="absolute -top-0 -right-1 h-5 w-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <span className="text-xs truncate max-w-[64px] text-center">
+                {friend.name.split(" ")[0]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
+  </div>
+)}
+
+
+      
+
       {/*Group Name and define tags*/}
-       <Card className="p-6 shadow-card mt-5 m-4">
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="flex items-center gap-3 mb-6">
-              
-              <Users className="h-5 w-5 text-primary" />
-              <h2 className="text-lg font-semibold">Group Name</h2>
-              <Input placeholder="Group 1" />
+       <Card className="p-6 shadow-card mt-5 m-4 space-y-6">
 
-                <div className="w-full max-w-md">
+  {/* Privacy Toggle */}
+  <div className="flex items-center justify-between">
+  <div className="space-y-1">
+    <Label className="text-sm font-medium">
+      {isPrivate ?  "Public Group": "Private Group" }
+    </Label>
+
+    <p className="text-xs text-muted-foreground">
+      {isPrivate
+        ? "Only invited members can find and join this group"
+        : "Anyone can discover and request to join this group"}
+    </p>
+  </div>
+
+  <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
+</div>
 
 
-      {/* Tag container with spacing yet */}
-      <div className="flex flex-wrap gap-2 border rounded p-2">
+  {/* Group Name */}
+  <div className="space-y-2">
+    <div className="flex items-center gap-2">
+      <Users className="h-5 w-5 text-primary" />
+      <h2 className="text-lg font-semibold">Group Name</h2>
+    </div>
+
+    <Input placeholder="Group 1" className="max-w-md" />
+  </div>
+
+  {/* Tags */}
+  <div className="space-y-2">
+    <Label className="text-sm font-medium">Tags</Label>
+
+      <div className="flex flex-wrap gap-2 border rounded-lg p-2">
         {tags.map(tag => (
           <span
             key={tag}
-            className="flex items-center gap-1 bg-gray-200 px-2 py-1 rounded-full text-sm"
+            className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-sm"
           >
             #{tag}
             <button
               onClick={() => removeTag(tag)}
-              className="text-gray-600 hover:text-black"
+              className="text-muted-foreground hover:text-foreground"
             >
               ✕
             </button>
@@ -155,19 +239,18 @@ const TAG_SUGGESTIONS = [
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add a tag…"
-            className="flex-1 min-w-[120px] outline-none"
+            className="flex-1 min-w-[120px] outline-none bg-transparent"
           />
         )}
       </div>
 
-      {/* Suggestions */}
       {filteredSuggestions.length > 0 && (
-        <ul className="mt-1 border rounded bg-white shadow">
+        <ul className="border rounded-md bg-popover shadow-sm">
           {filteredSuggestions.map(tag => (
             <li
               key={tag}
               onClick={() => addTag(tag)}
-              className="px-3 py-1 cursor-pointer hover:bg-gray-100"
+              className="px-3 py-1 cursor-pointer hover:bg-muted"
             >
               #{tag}
             </li>
@@ -175,22 +258,22 @@ const TAG_SUGGESTIONS = [
         </ul>
       )}
 
-      <p className="mt-1 text-xs text-gray-500">
+      <p className="text-xs text-muted-foreground">
         {tags.length}/{MAX_TAGS} tags
       </p>
     </div>
-    {/*End of tag container*/}
 
-            </div>
-            </div>
-        </Card>
+  </Card>
 
-         <div className="grid lg:grid-cols-2 gap-6">
+        
+       
+         <div className="ml-5 mr-5 grid lg:grid-cols-1 gap-6">
+        
                   {/* Friends List */}
                   <Card className="p-6 shadow-card">
                     <div className="flex items-center gap-3 mb-6">
                       <Users className="h-5 w-5 text-primary" />
-                      <h2 className="text-lg font-semibold">Friends Nearby</h2>
+                      <h2 className="text-lg font-semibold">Contact List</h2>
                     </div>
         
                     <ScrollArea className="h-[400px]">
@@ -216,20 +299,28 @@ const TAG_SUGGESTIONS = [
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h3 className="font-medium truncate">{friend.name}</h3>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <MapPin className="h-3 w-3" />
-                                  <span>{friend.distance} away</span>
-                                </div>
+                               
                                 <p className="text-xs text-muted-foreground">
                                   Last seen {friend.lastSeen}
                                 </p>
                               </div>
-                              <Badge 
-                                variant={friend.status === 'online' ? 'default' : 'secondary'}
-                                className={friend.status === 'online' ? 'gradient-success text-success-foreground' : ''}
-                              >
-                                {friend.status}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+  {selectedFriends.includes(friend.id) && (
+    <Button
+      size="sm"
+      variant={friendRoles[friend.id] === "admin" ? "default" : "outline"}
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleRole(friend.id);
+      }}
+    >
+      {friendRoles[friend.id] === "admin" ? "Admin" : "Member"}
+    </Button>
+  )}
+
+  
+</div>
+
                             </div>
                           </div>
                         ))}
@@ -237,6 +328,36 @@ const TAG_SUGGESTIONS = [
                     </ScrollArea>
                   </Card>
               </div>
+              
+
+              <div className="sticky bottom-0 z-50 border-t bg-card/80 backdrop-blur-md px-4 py-3">
+  <div className="flex justify-between items-center">
+    <p className="text-sm text-muted-foreground">
+      {selectedFriends.length} members selected
+    </p>
+
+    <Button
+      size="lg"
+      disabled={!selectedFriends.length}
+      onClick={() => {
+        const payload = {
+          isPrivate,
+          tags,
+          members: selectedFriends.map(id => ({
+            id,
+            role: friendRoles[id] ?? "member",
+          })),
+        };
+
+        console.log("CREATE GROUP:", payload);
+      }}
+    >
+      Create Group
+    </Button>
+  </div>
+</div>
+
+              
 
       
             
