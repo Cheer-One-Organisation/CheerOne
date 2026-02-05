@@ -3,6 +3,7 @@ import { auth } from "../../firebase/firebase.js";
 import { useNavigate } from "react-router-dom";
 import { GoogleAuthProvider, signInWithPopup} from "firebase/auth";
 import { FcGoogle } from 'react-icons/fc'; 
+import {Button} from "@/components/ui/button";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -30,16 +31,22 @@ const SignIn = () => {
 
   
   return (
-    <section className="sign-in-container">
-      <h1>Sign In</h1>
+   
+       <section>
+            <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md"></header>
+      <h1 className="text-center">Sign In</h1>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button onClick={handleGoogleSignIn}>
+    <section className="container mx-auto px-4 py-4 text-center">
+          <section className="flex items-center gap-4">
+      <Button className="bg-white border border-gray-300 text-black" onClick={handleGoogleSignIn}>
          {<FcGoogle size={24} style={{ marginLeft: "12px" }} />}
         Sign in with Google
        
-      </button>
+      </Button>
+      </section>
+      </section>
 
      
     </section>
