@@ -22,12 +22,12 @@ jobs:
         run: npm install
 
       - name: Run tests with coverage
-        run: npm test -- --coverage || true
+        run: npx jest --coverage || true
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
-            token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Build Vite app
         run: npm run build
