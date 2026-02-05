@@ -6,10 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
 import CreateNewGroup from "./pages/CreateNewGroup";
+import AboutGroup from "./pages/AboutGroup";
 import GroupChats from "./pages/GroupChats";
 import LocationFinder from "./pages/LocationFinder";
 import PublicGroups from "./pages/PublicGroups";
 import NotFound from "./pages/NotFound";
+import FriendChats from "./pages/FriendChats";
 
 
 const queryClient = new QueryClient();
@@ -27,6 +29,8 @@ const App = () => (
           <Route path="/location-finder" element={<LocationFinder />} />
           <Route path="/public-groups" element={<PublicGroups />} />
           <Route path="/create-new-group" element={<CreateNewGroup/>}/>
+          <Route path="/friend-chats" element = {<FriendChats/>}/>
+          <Route path="/about-group" element={<AboutGroup/>}/>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

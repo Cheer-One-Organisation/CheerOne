@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { InfoIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const GroupChats = () => {
@@ -117,7 +118,9 @@ const GroupChats = () => {
                       <AvatarFallback className="gradient-primary text-primary-foreground">
                         {groups.find(g => g.id === selectedGroup)?.avatar}
                       </AvatarFallback>
+                      
                     </Avatar>
+                   
                     <div>
                       <h3 className="font-semibold">
                         {groups.find(g => g.id === selectedGroup)?.name}
@@ -125,8 +128,13 @@ const GroupChats = () => {
                       <p className="text-sm text-muted-foreground">
                         {groups.find(g => g.id === selectedGroup)?.members} members
                       </p>
+                      
+                    </div>
+                    <div className="ml-auto">
+                    <InfoIcon onClick={()=>navigate("/about-group")}></InfoIcon>
                     </div>
                   </div>
+                   
                 </div>
 
                 {/* Messages */}

@@ -176,12 +176,14 @@ const LocationFinder = () => {
                     <p className="text-sm mb-3">{ping.message}</p>
                     <div className="flex gap-2">
                       <Button 
+                       onClick={()=>navigate("/friend-chats")}
                         size="sm" 
                         variant={ping.responded ? "secondary" : "default"}
                         className={!ping.responded ? "gradient-primary text-primary-foreground" : ""}
                         disabled={ping.responded}
                       >
                         {ping.responded ? "Responded" : "Respond"}
+                        
                       </Button>
                       <Button size="sm" variant="outline">
                         <MapPin className="mr-1 h-3 w-3" />
