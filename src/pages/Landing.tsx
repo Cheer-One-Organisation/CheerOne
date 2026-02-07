@@ -33,14 +33,11 @@ const Landing = () => {
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold gradient-hero bg-clip-text text-transparent">
+          <h1 className="text-xl font-bold gradient-hero bg-clip-text text-white">
             Cheer One
           </h1>
           <div className="flex gap-4">
-            <Button variant="ghost" onClick={() => navigate("/signin")}>
-              Sign In
-            </Button>
-            <Button onClick={() => navigate("/signup")}>Sign Up</Button>
+            <Button onClick={() => navigate("/sign-in")}>Sign Up / Sign In</Button>
           </div>
         </div>
       </header>
@@ -62,7 +59,7 @@ const Landing = () => {
               <Button
                 size="lg"
                 className="gradient-primary text-primary-foreground shadow-glow hover:scale-105 transition-transform"
-                onClick={() => navigate("/signup")}
+                onClick={() => navigate("/sign-in")}
               >
                 Get Started
               </Button>
@@ -70,7 +67,7 @@ const Landing = () => {
                 size="lg"
                 variant="outline"
                 className="hover:scale-105 transition-transform"
-                onClick={() => navigate("/features")}
+               
               >
                 Learn More
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -131,7 +128,7 @@ const Landing = () => {
           <Button
             size="lg"
             className="gradient-primary shadow-glow hover:scale-105 transition-transform"
-            onClick={() => navigate("/signup")}
+            onClick={() => navigate("/sign-in")}
           >
             Get Started
           </Button>
