@@ -14,18 +14,18 @@ const FriendChats=()=>{
       const [selectedGroup, setSelectedGroup] = useState<number | null>(1);
       const [newMessage, setNewMessage] = useState("");
     
-      const groups = [
-        { id: 1, name: "College Friends", members: 8, lastMessage: "Hey everyone! 🎉", avatar: "CF" },
-        { id: 2, name: "Work Team", members: 12, lastMessage: "Meeting at 3 PM", avatar: "WT" },
-        { id: 3, name: "Family", members: 6, lastMessage: "Dinner this Sunday?", avatar: "FM" },
-        { id: 4, name: "Gaming Squad", members: 5, lastMessage: "New raid tonight!", avatar: "GS" },
+      const friends = [
+        { id: 1, name: "Julia Fox", lastMessage: "Hey, are you available?", avatar: "JF" },
+        { id: 2, name: "Ivine Couger", lastMessage: "Meeting at 3 PM", avatar: "IC" },
+        { id: 3, name: "Fiona Mables", lastMessage: "Dinner this Sunday?", avatar: "FM" },
+        { id: 4, name: "Greg Sweeney", lastMessage: "New raid tonight!", avatar: "GS" },
       ];
     
       const messages = [
-        { id: 1, sender: "Alex", message: "Hey everyone! How's your day going?", time: "2:30 PM", isMe: false },
-        { id: 2, sender: "You", message: "Pretty good! Just finished my project 🎉", time: "2:32 PM", isMe: true },
-        { id: 3, sender: "Sarah", message: "Awesome! Congrats 🎊", time: "2:33 PM", isMe: false },
-        { id: 4, sender: "Mike", message: "Nice work! Let's celebrate this weekend", time: "2:35 PM", isMe: false },
+        { id: 1, sender: "Julia Fox", message: "Miss ya!", time: "2:30 PM", isMe: false },
+        { id: 2, sender: "You", message: "See you soon", time: "2:32 PM", isMe: true },
+        { id: 3, sender: "Julia Fox", message: "Awesome! Congrats 🎊", time: "2:33 PM", isMe: false },
+        { id: 4, sender: "Julia Fox", message: "Nice work! Let's celebrate this weekend", time: "2:35 PM", isMe: false },
       ];
     
       const handleSendMessage = () => {
@@ -49,7 +49,9 @@ const FriendChats=()=>{
                 >
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
+
                 <h1 className="text-xl font-semibold">Friend Chats</h1>
+                <Button className="ml-auto" onClick={()=>navigate("/create-contact")}><Plus/> Add New Friend</Button>
               </div>
             </div>
           </header>
@@ -65,12 +67,12 @@ const FriendChats=()=>{
                 
                 <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search groups..." className="pl-10" />
+                  <Input placeholder="Search contacts..." className="pl-10" />
                 </div>
     
                 <ScrollArea className="h-[400px]">
                   <div className="space-y-3">
-                    {groups.map((group) => (
+                    {friends.map((group) => (
                       <div
                         key={group.id}
                         onClick={() => setSelectedGroup(group.id)}
@@ -91,9 +93,6 @@ const FriendChats=()=>{
                             <p className="text-sm text-muted-foreground truncate">
                               {group.lastMessage}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {group.members} members
-                            </p>
                           </div>
                         </div>
                       </div>
@@ -109,24 +108,23 @@ const FriendChats=()=>{
                     {/* Chat Header */}
                     <div className="p-6 border-b">
                       <div className="flex items-center gap-3">
+                        
                         <Avatar>
                           <AvatarFallback className="gradient-primary text-primary-foreground">
-                            {groups.find(g => g.id === selectedGroup)?.avatar}
+                            {friends.find(g => g.id === selectedGroup)?.avatar}
                           </AvatarFallback>
                           
                         </Avatar>
                        
                         <div>
                           <h3 className="font-semibold">
-                            {groups.find(g => g.id === selectedGroup)?.name}
+                            {friends.find(g => g.id === selectedGroup)?.name}
                           </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {groups.find(g => g.id === selectedGroup)?.members} members
-                          </p>
+                          
                           
                         </div>
                         <div className="ml-auto">
-                        <InfoIcon onClick={()=>navigate("/about-group")}></InfoIcon>
+                        <InfoIcon onClick={()=>navigate("/about-contact")}></InfoIcon>
                         </div>
                       </div>
                        

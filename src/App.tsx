@@ -12,6 +12,8 @@ import LocationFinder from "./pages/LocationFinder";
 import PublicGroups from "./pages/PublicGroups";
 import NotFound from "./pages/NotFound";
 import FriendChats from "./pages/FriendChats";
+import AboutContact from "./pages/AboutContact";
+import CreateContact from "./pages/CreateContact";
 
 
 const queryClient = new QueryClient();
@@ -31,6 +33,9 @@ const App = () => (
           <Route path="/create-new-group" element={<CreateNewGroup/>}/>
           <Route path="/friend-chats" element = {<FriendChats/>}/>
           <Route path="/about-group" element={<AboutGroup/>}/>
+          <Route path="/about-contact" element={<AboutContact/>}/>
+          <Route path="/create-contact" element={<CreateContact/>}/>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

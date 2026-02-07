@@ -39,6 +39,7 @@ const TAG_SUGGESTIONS = [
   const [inputValue, setInputValue] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [friend,setFriend] = useState("");
+  const [description, setDescription]=useState("")
 
   type Role = "member" | "admin";
   const [friendRoles, setFriendRoles] = useState<Record<number, Role>>({});
@@ -212,6 +213,28 @@ const TAG_SUGGESTIONS = [
 
     <Input placeholder="Group 1" className="max-w-md" />
   </div>
+
+  {/* Group Description */}
+<div className="space-y-2">
+  <div className="flex items-center gap-2">
+    <Scroll className="h-5 w-5 text-primary" />
+    <h2 className="text-lg font-semibold">Group Description</h2>
+  </div>
+
+  <textarea
+    value={description}
+    onChange={(e) => setDescription(e.target.value)}
+    placeholder="What is this group about?"
+    rows={4}
+    maxLength={300}
+    className="w-full resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+  />
+
+  <p className="text-xs text-muted-foreground text-right">
+    {description.length}/300
+  </p>
+</div>
+
 
   {/* Tags */}
   <div className="space-y-2">
