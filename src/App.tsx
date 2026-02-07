@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import Landing from "./pages/Landing";
 import SignIn from "./pages/SignIn";
 import Dashboard from "./pages/Dashboard";
 import CreateNewGroup from "./pages/CreateNewGroup";
@@ -14,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import FriendChats from "./pages/FriendChats";
 import AboutContact from "./pages/AboutContact";
 import CreateContact from "./pages/CreateContact";
+import MyUserContact from "./pages/MyUserContact";
 
 
 const queryClient = new QueryClient();
@@ -26,7 +29,8 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path= "/" element={<SignIn/>}/>
+          <Route path="/" element={<Landing />} />
+          <Route path= "/signup" element={<SignIn/>}/>
           <Route path="/group-chats" element={<GroupChats />} />
           <Route path="/location-finder" element={<LocationFinder />} />
           <Route path="/public-groups" element={<PublicGroups />} />
@@ -35,7 +39,8 @@ const App = () => (
           <Route path="/about-group" element={<AboutGroup/>}/>
           <Route path="/about-contact" element={<AboutContact/>}/>
           <Route path="/create-contact" element={<CreateContact/>}/>
-          
+          <Route path="/my-profile" element={<MyUserContact/>}/>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
