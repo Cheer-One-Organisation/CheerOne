@@ -9,18 +9,51 @@ import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 
+
+import { auth,db } from "../../firebase/firebase"; // adjust path if needed
+import { doc, getDoc, setDoc } from "firebase/firestore";
+
+
 const MyUserContact = () => {
   const navigate = useNavigate();
 
   const [description, setDescription] = useState(
     "Hey! I’m using Cheer One. You can reach me here."
   );
+
+
+
+
+useEffect(() => {
+  const fetchUser = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const docRef = doc(db, "Users", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+
+      if (data.description) setDescription(data.description);
+      if (data.location) setLocation(data.location);
+      if (data.liveLocationEnabled !== undefined)
+        setLiveLocationEnabled(data.liveLocationEnabled);
+    }
+  };
+
+  fetchUser();
+}, []);
+
+
   const [liveLocationEnabled, setLiveLocationEnabled] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     { lat: 0, lng: 0 } // placeholder coordinates
   );
 
   const email = "myemail@example.com"; // Replace with actual account email
+
+
 
   return (
     <section className="flex flex-col min-h-screen">
@@ -57,7 +90,33 @@ const MyUserContact = () => {
           placeholder="Write something about yourself..."
         />
         <Button
-          onClick={() => alert("Description saved!")}
+          onClick={async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Not authenticated");
+    return;
+  }
+
+  try {
+    await setDoc(
+      doc(db, "Users", user.uid),
+      {
+        description,
+        location,
+        liveLocationEnabled,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
+
+    alert("Saved successfully!");
+  } catch (err) {
+    console.error(err);
+    alert("Error saving");
+  }
+}}
+
+
           className="mt-2"
         >
           Save

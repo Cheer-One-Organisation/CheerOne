@@ -17,7 +17,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
 
-  envDir: './env',   // ← points to your folder
+  envDir: './env',  
 
 
 }));
