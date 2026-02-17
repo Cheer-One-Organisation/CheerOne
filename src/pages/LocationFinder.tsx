@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState ,useEffect} from "react";
 import { ArrowLeft, MapPin, Send, Users, Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +7,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+import { auth, fsdb } from "../../firebase/firebase"; // adjust path if needed
+import { doc, getDoc } from "firebase/firestore";
+
+//@ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
 
 const LocationFinder = () => {
   const navigate = useNavigate();
@@ -28,8 +43,8 @@ const LocationFinder = () => {
   ];
 
   const toggleFriendSelection = (friendId: number) => {
-    setSelectedFriends(prev => 
-      prev.includes(friendId) 
+    setSelectedFriends(prev =>
+      prev.includes(friendId)
         ? prev.filter(id => id !== friendId)
         : [...prev, friendId]
     );
@@ -51,15 +66,41 @@ const LocationFinder = () => {
     }
   };
 
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
+    { lat: 0, lng: 0 } // placeholder coordinates
+  );
+ const user = auth.currentUser;
+  console.log(user.photoURL);
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!user) return;
+
+      const docRef = doc(fsdb, "User", user.uid);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        console.log("data", data);
+
+        if (data.lastping) setLocation({ lat: data.lastping.latitude, lng: data.lastping.longitude });
+
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+
+console.log("location",location);
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => navigate("/dashboard")}
               className="transition-smooth"
             >
@@ -87,12 +128,12 @@ const LocationFinder = () => {
               onChange={(e) => setPingMessage(e.target.value)}
               className="w-full"
             />
-            
+
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
                 {selectedFriends.length} friend{selectedFriends.length !== 1 ? 's' : ''} selected
               </span>
-              <Button 
+              <Button
                 onClick={sendPing}
                 disabled={selectedFriends.length === 0}
                 className="gradient-primary text-primary-foreground transition-bounce hover:scale-105"
@@ -118,11 +159,10 @@ const LocationFinder = () => {
                   <div
                     key={friend.id}
                     onClick={() => toggleFriendSelection(friend.id)}
-                    className={`p-4 rounded-lg cursor-pointer transition-smooth border-2 ${
-                      selectedFriends.includes(friend.id)
+                    className={`p-4 rounded-lg cursor-pointer transition-smooth border-2 ${selectedFriends.includes(friend.id)
                         ? 'border-primary bg-primary/5'
                         : 'border-transparent hover:bg-secondary'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -143,7 +183,7 @@ const LocationFinder = () => {
                           Last seen {friend.lastSeen}
                         </p>
                       </div>
-                      <Badge 
+                      <Badge
                         variant={friend.status === 'online' ? 'default' : 'secondary'}
                         className={friend.status === 'online' ? 'gradient-success text-success-foreground' : ''}
                       >
@@ -175,15 +215,15 @@ const LocationFinder = () => {
                     </div>
                     <p className="text-sm mb-3">{ping.message}</p>
                     <div className="flex gap-2">
-                      <Button 
-                       onClick={()=>navigate("/friend-chats")}
-                        size="sm" 
+                      <Button
+                        onClick={() => navigate("/friend-chats")}
+                        size="sm"
                         variant={ping.responded ? "secondary" : "default"}
                         className={!ping.responded ? "gradient-primary text-primary-foreground" : ""}
                         disabled={ping.responded}
                       >
                         {ping.responded ? "Responded" : "Respond"}
-                        
+
                       </Button>
                       <Button size="sm" variant="outline">
                         <MapPin className="mr-1 h-3 w-3" />
@@ -198,16 +238,16 @@ const LocationFinder = () => {
         </div>
 
         {/* Map Placeholder */}
-        <Card className="p-6 shadow-card">
-          <div className="h-64 bg-secondary rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Interactive Map</h3>
-              <p className="text-muted-foreground">
-                Map integration will show friend locations and ping history
-              </p>
-            </div>
-          </div>
+        <Card className="mx-5 mt-5 p-0 shadow-card rounded-lg h-80">
+          <MapContainer key={`${location.lat}-${location.lng}`} center={[location.lat, location.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <Marker position={[location.lat, location.lng]}>
+              <Popup>Your Current Location</Popup>
+            </Marker>
+          </MapContainer>
         </Card>
       </div>
     </div>

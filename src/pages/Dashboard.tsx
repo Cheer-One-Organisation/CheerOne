@@ -1,14 +1,21 @@
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MessageCircle, MapPin, Users, Bell, ArrowLeft, Menu } from "lucide-react";
+import { MessageCircle, MapPin, Users, Bell, ArrowLeft, Menu, UserCogIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroBanner from "@/assets/hero-banner.jpg";
-
+import { getDocs, collection, doc,setDoc,GeoPoint } from "firebase/firestore"
+import { fsdb, auth } from "../../firebase/firebase.js";
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const usercollectionref = collection(fsdb, "User");
+ const user = auth.currentUser;
+;
+  const [userfildata, setuserfildata] = useState([]);
+  const [curruserdata, setcurruserdata] = useState(null);
+  const [currentping ,setcurrentping]=useState({});
+  console.log(currentping);
   const signOut = () => {
     navigate("/");
   };
@@ -36,6 +43,80 @@ const Dashboard = () => {
       gradient: "gradient-hero",
     },
   ];
+
+  const getusers = async () => {
+    try {
+      const data = await getDocs(usercollectionref);
+      const filtdata = data.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      console.log(filtdata);
+      setuserfildata(filtdata);
+
+    } catch (err) {
+      console.error(err);
+    }
+
+  };
+  const finduserdata = () => {
+    if (user) {
+      console.log(user.uid);
+      console.log(user.email);
+      console.log(user.displayName);
+      userfildata.map(
+        (doc) => {
+          if (doc.userid == user.uid) {
+            setcurruserdata(doc);
+          }
+        });
+    }
+    else {
+      console.log("there is no user");
+    }
+  };
+  const adduser = async () => {
+    try {
+      
+      navigator.geolocation.getCurrentPosition(async (pos) => {
+      console.log(pos.coords.latitude, pos.coords.longitude);
+      setcurrentping({lat:pos.coords.latitude, long:pos.coords.longitude});
+      
+      localStorage.setItem("currentping",JSON.stringify({lat:pos.coords.latitude, long:pos.coords.longitude}));
+       const adata = {
+        displayName: user.displayName,
+        email: user.email,
+        lastping: new GeoPoint(pos.coords.latitude,pos.coords.longitude),
+        userid: user.uid,
+        locationlive:true
+      };
+     await setDoc(doc(fsdb,"User",user.uid), adata,{merge:true});
+
+      });
+     
+
+      getusers();
+      finduserdata();
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) return;
+
+    
+    getusers();
+    finduserdata();
+
+    if (!curruserdata) {
+
+      adduser();
+      console.log(curruserdata);
+
+    }
+  }, []);
+
+
+
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -135,71 +216,70 @@ const Dashboard = () => {
 
       {/* Right Sidebar */}
       <aside
-  className={`fixed top-0 right-0 h-full w-64 bg-card shadow-lg z-40 transform transition-transform opacity-95 ${
-    sidebarOpen ? "translate-x-0" : "translate-x-full"
-  } flex flex-col justify-between`}
->
-  {/* Sidebar Header with Close Button */}
-  <div className="flex justify-between items-center p-6 border-b">
-    <h2 className="text-xl font-bold">Cheer One</h2>
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setSidebarOpen(false)}
-    >
-      ✕
-    </Button>
-  </div>
+        className={`fixed top-0 right-0 h-full w-64 bg-card shadow-lg z-40 transform transition-transform opacity-95 ${sidebarOpen ? "translate-x-0" : "translate-x-full"
+          } flex flex-col justify-between`}
+      >
+        {/* Sidebar Header with Close Button */}
+        <div className="flex justify-between items-center p-6 border-b">
+          <h2 className="text-xl font-bold">Cheer One</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSidebarOpen(false)}
+          >
+            ✕
+          </Button>
+        </div>
 
-  <div className="p-6 space-y-3 flex-1">
-    <Button
-      variant="ghost"
-      size="sm"
-      className="w-full justify-start"
-      onClick={() => navigate("/about")}
-    >
-      About
-    </Button>
+        <div className="p-6 space-y-3 flex-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => navigate("/about")}
+          >
+            About
+          </Button>
 
-    <Button  variant="ghost"
-      size="sm"
-      className="w-full justify-start"
-      onClick={() => navigate("/my-profile")}>
-      View and edit my profile
+          <Button variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => navigate("/my-profile")}>
+            View and edit my profile
 
-    </Button>
+          </Button>
 
-    <Button
-      variant="ghost"
-      size="sm"
-      className="w-full justify-start"
-      onClick={() => navigate("/group-chats")}
-    >
-      Group Chats
-    </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => navigate("/group-chats")}
+          >
+            Group Chats
+          </Button>
 
-    <Button
-      variant="ghost"
-      size="sm"
-      className="w-full justify-start"
-      onClick={() => navigate("/public-groups")}
-    >
-      Public Groups
-    </Button>
-  </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => navigate("/public-groups")}
+          >
+            Public Groups
+          </Button>
+        </div>
 
-  <div className="p-6">
-    <Button
-      variant="destructive"
-      size="sm"
-      className="w-full"
-      onClick={signOut}
-    >
-      <ArrowLeft className="mr-2 h-4 w-4" />
-      Logout
-    </Button>
-  </div>
-</aside>
+        <div className="p-6">
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full"
+            onClick={signOut}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+      </aside>
 
     </div>
   );

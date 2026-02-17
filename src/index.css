@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
 /* Cheer One Design System - Modern messaging app with vibrant social colors */
 

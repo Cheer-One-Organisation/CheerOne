@@ -4,18 +4,18 @@ import { useNavigate } from "react-router-dom";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { FcGoogle } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+//import { ArrowLeft } from "lucide-react";
 
 const SignIn = () => {
   const navigate = useNavigate();
   const [error, setError] = useState("");
-
   const handleGoogleSignIn = async () => {
-    const provider = new GoogleAuthProvider();  
+    const provider = new GoogleAuthProvider();
 
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithPopup(auth, provider);     
       navigate("/dashboard");
+
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
       let message = "Something went wrong!";
@@ -26,7 +26,7 @@ const SignIn = () => {
 
   return (
     <section className="min-h-screen bg-background flex items-center justify-center">
-     
+
       <div className="w-full max-w-md p-8 bg-card shadow-lg rounded-2xl">
         {/* Header / Logo */}
         <div className="flex flex-col items-center mb-6">
