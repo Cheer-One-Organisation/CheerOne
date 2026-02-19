@@ -13,6 +13,8 @@ const FriendChats=()=>{
      const navigate = useNavigate();
       const [selectedGroup, setSelectedGroup] = useState<number | null>(1);
       const [newMessage, setNewMessage] = useState("");
+      const [messageHistory, getMessageHistory] = useState([]);
+      const [currentMessage, setCurrentMessage] = useState("");
     
       const friends = [
         { id: 1, name: "Julia Fox", lastMessage: "Hey, are you available?", avatar: "JF" },

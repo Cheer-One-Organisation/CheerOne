@@ -1,4 +1,4 @@
-import { useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,64 +6,89 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-//import { MapPin } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { auth, fsdb } from "../../firebase/firebase"; // adjust path if needed
-import { doc, getDoc, setDoc } from "firebase/firestore";
 
-//@ts-ignore
+import { auth, fsdb } from "../../firebase/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+// Fix Leaflet default marker issue
+// @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  shadowUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
-
-
 
 const MyUserContact = () => {
   const navigate = useNavigate();
-  const user = auth.currentUser;
 
-  const [description, setDescription] = useState("Hey! I’m using Cheer One. You can reach me here.");
-  const [displayName, setdisplayName] = useState(user.displayName);
+  const [user, setUser] = useState<any>(null);
+
+  const [description, setDescription] = useState(
+    "Hey! I’m using Cheer One. You can reach me here."
+  );
+  const [displayName, setDisplayName] = useState("");
   const [liveLocationEnabled, setLiveLocationEnabled] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-    { lat: 0, lng: 0 } // placeholder coordinates
+    null
   );
 
-  console.log(user.photoURL);
+
   useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
     const fetchUser = async () => {
-      if (!user) return;
+      try {
+        const docRef = doc(fsdb, "User", user.uid);
+        const docSnap = await getDoc(docRef);
 
-      const docRef = doc(fsdb, "User", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        console.log("data", data);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
 
-        if (data.description) setDescription(data.description);
-        if (data.lastping) setLocation({ lat: data.lastping.latitude, lng: data.lastping.longitude });
-        if (data.displayName) setdisplayName(data.displayName);
-        if (data.locationlive !== undefined)
-          setLiveLocationEnabled(data.locationlive);
+          setDescription(
+            data.description ??
+              "Hey! I’m using Cheer One. You can reach me here."
+          );
+
+          if (data.lastping) {
+            setLocation({
+              lat: data.lastping.latitude,
+              lng: data.lastping.longitude,
+            });
+          }
+
+          setDisplayName(data.displayName ?? user.displayName ?? "");
+          setLiveLocationEnabled(data.locationlive ?? false);
+        } else {
+          // fallback to auth display name
+          setDisplayName(user.displayName ?? "");
+        }
+      } catch (err) {
+        console.error("Error fetching user profile:", err);
       }
     };
 
     fetchUser();
-  }, []);
+  }, [user]);
 
-
-
-  const email = user.email; // Replace with actual account email
-
-
+  const email = user?.email;
 
   return (
     <section className="flex flex-col min-h-screen">
@@ -81,9 +106,9 @@ const MyUserContact = () => {
       <Card className="mx-5 mt-5 p-6 shadow-card">
         <div className="flex flex-col items-center gap-4 text-center">
           <Avatar className="h-20 w-20">
-            <AvatarImage src={user?.photoURL} className="h-20 w-20" />
+            <AvatarImage src={user?.photoURL ?? undefined} />
             <AvatarFallback className="gradient-primary text-xl font-semibold text-primary-foreground">
-              {displayName?.[0]}
+              {displayName?.[0] ?? "U"}
             </AvatarFallback>
           </Avatar>
           <h2 className="text-xl font-semibold">{displayName}</h2>
@@ -102,7 +127,6 @@ const MyUserContact = () => {
         />
         <Button
           onClick={async () => {
-            const user = auth.currentUser;
             if (!user) {
               alert("Not authenticated");
               return;
@@ -114,7 +138,7 @@ const MyUserContact = () => {
                 {
                   description,
                   location,
-                  liveLocationEnabled,
+                  locationlive: liveLocationEnabled,
                   updatedAt: new Date(),
                 },
                 { merge: true }
@@ -126,8 +150,6 @@ const MyUserContact = () => {
               alert("Error saving");
             }
           }}
-
-
           className="mt-2"
         >
           Save
@@ -137,7 +159,9 @@ const MyUserContact = () => {
       {/* Live Location Toggle */}
       <Card className="mx-5 mt-5 p-6 shadow-card flex items-center justify-between">
         <div>
-          <Label className="text-sm font-medium">Share Live Location</Label>
+          <Label className="text-sm font-medium">
+            Share Live Location
+          </Label>
           <p className="text-xs text-muted-foreground">
             Enable to let friends see your real-time location
           </p>
@@ -148,12 +172,16 @@ const MyUserContact = () => {
         />
       </Card>
 
-      {/* Map Placeholder */}
-      {liveLocationEnabled && (
+      {/* Map */}
+      {liveLocationEnabled && location && (
         <Card className="mx-5 mt-5 p-0 shadow-card rounded-lg h-80">
-          <MapContainer center={[location.lat, location.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
+          <MapContainer
+            center={[location.lat, location.lng]}
+            zoom={13}
+            style={{ height: "100%", width: "100%" }}
+          >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              attribution='&copy; OpenStreetMap contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
             <Marker position={[location.lat, location.lng]}>
@@ -162,7 +190,6 @@ const MyUserContact = () => {
           </MapContainer>
         </Card>
       )}
-
     </section>
   );
 };
