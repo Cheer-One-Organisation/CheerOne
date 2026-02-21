@@ -70,7 +70,7 @@ const LocationFinder = () => {
     { lat: 0, lng: 0 } // placeholder coordinates
   );
  const user = auth.currentUser;
-  console.log(user.photoURL);
+ // console.log(user.photoURL);
   useEffect(() => {
     const fetchUser = async () => {
       if (!user) return;
