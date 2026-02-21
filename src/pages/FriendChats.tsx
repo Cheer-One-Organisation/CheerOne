@@ -39,7 +39,7 @@ const FriendChats = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
 
-  
+  // *** use this observer function for updating the current signed in user ***
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
@@ -47,17 +47,19 @@ const FriendChats = () => {
     return () => unsubscribe();
   }, []);
 
-
+  //<Retrieve messages>
   useEffect(() => {
     if (!user) return;
 
-    
+    // search each collection's participants array for user.uid (get all Individual chats collections)
     const q = query(
       collection(fsdb, "IndividualChats"),
-      where("participans", "array-contains", user.uid),
+      where("participants", "array-contains", user.uid),
       orderBy("lastTimeStamp", "desc")
     );
 
+    // once we have the chats involving the current user, now query the other user and retrieve their info
+    // ie. user name, location from User (for every IndividualChats)
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       const chatList: any[] = [];
 
@@ -66,7 +68,7 @@ const FriendChats = () => {
         console.log(chatData);
 
         // find the OTHER user
-        const otherUserId = chatData.participans.find(
+        const otherUserId = chatData.participants.find(
           (id: string) => id !== user.uid
         );
 
@@ -89,13 +91,14 @@ const FriendChats = () => {
     return () => unsubscribe();
   }, [user]);
 
-  // ✅ Load messages of selected chat
+  // Load the messages from a selected chat
   useEffect(() => {
     if (!selectedChat) return;
     if (!selectedChat || !user) return;
 
     console.log(selectedChat);
 
+    // must create and Composite Indexes in Firebase > Firesotre Databases > Indexes to allow use of 'orderBy' clause in queries
     const q = query(
       collection(fsdb, "IndividualChats", selectedChat.id, "Messages"),
       orderBy("timestamp", "asc")
@@ -116,7 +119,11 @@ const FriendChats = () => {
     return () => unsubscribe();
   }, [selectedChat]);
 
-  // ✅ Send message
+  
+  // <Send messages>
+
+  // fetch subcollection of selected IndividualChats for currentUser and otherselecteUser pair
+  // create a doc under Messages of the new message (these are fetched in descending order as per above data fetch^)
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedChat) return;
 
@@ -124,7 +131,7 @@ const FriendChats = () => {
 
     await setDoc(
       chatRef,
-      {
+      {// update the lastMessage being sent from Individual chats
         lastMessage: newMessage,
         lastTimeStamp: serverTimestamp()
       },
