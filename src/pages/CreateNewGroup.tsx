@@ -99,6 +99,7 @@ const CreateNewGroup = () => {
 
     const docRef = await addDoc(collection(fsdb, "Publicgroups"), {
       groupname,
+      //location,
       description,
       isprivate: false,
       lastmessage: "",
@@ -499,7 +500,7 @@ const CreateGroup = async () => {
 
 
             size="lg"
-            disabled={isPrivate && !selectedFriends.length}
+            disabled={(isPrivate && !selectedFriends.length) || groupname.length==0 || groupname.length>=40}
             onClick={() => {
               const payload = {
                 isPrivate,
