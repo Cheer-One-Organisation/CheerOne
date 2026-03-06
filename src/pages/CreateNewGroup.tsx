@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { FcPlus } from "react-icons/fc";
 import { getDocs, collection, doc, setDoc, GeoPoint, addDoc,serverTimestamp  } from "firebase/firestore"
 import { fsdb, auth } from "../../firebase/firebase.js";
+import { Auth, getAuth } from "firebase/auth";
 
 
 const CreateNewGroup = () => {
@@ -69,6 +70,51 @@ const CreateNewGroup = () => {
 
   type Role = "member" | "admin";
   const [friendRoles, setFriendRoles] = useState<Record<number, Role>>({});
+
+
+  const CreatePrivateGroup = async () => {
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("User not logged in");
+      return;
+    }
+
+    const currentUserMember = {
+      id: user.uid,
+      role: "admin",
+    };
+
+    const allMembers = [
+      currentUserMember,
+      ...selectedFriends
+        .filter((f) => f.id !== user.uid)
+        .map((f) => ({
+          id: f.id,
+          role: "member",
+        })),
+    ];
+
+    const docRef = await addDoc(collection(fsdb, "Publicgroups"), {
+      groupname,
+      description,
+      isprivate: false,
+      lastmessage: "",
+      lastTimeStamp: serverTimestamp(),
+      tags,
+      participants: allMembers,
+    });
+
+    console.log("Group created with ID:", docRef.id);
+
+    navigate('/dashboard');
+  } catch (err) {
+    console.error("Error creating group:", err);
+    alert("Failed to create group");
+  }
+};
 
 
 
@@ -453,14 +499,14 @@ const CreateGroup = async () => {
 
 
             size="lg"
-            disabled={!selectedFriends.length}
+            disabled={isPrivate && !selectedFriends.length}
             onClick={() => {
               const payload = {
                 isPrivate,
                 tags,
                 members: selectedFriends
               };
-              CreateGroup();
+              CreatePrivateGroup();
               console.log("CREATE GROUP:", payload);
 
               navigate("/group-chats");

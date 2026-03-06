@@ -72,7 +72,7 @@ export default function CreateContact() {
 
             <div className="flex items-center gap-4">
                <Button variant="ghost"size="sm" 
-               onClick={() => navigate("/friend-chats")} className="transition-smooth">
+               onClick={() => navigate("/location-finder")} className="transition-smooth">
                 <ArrowLeft className="h-4 w-4" /> </Button>
                   <h1 className="text-2xl font-semibold">Create New Contact</h1>
             </div>

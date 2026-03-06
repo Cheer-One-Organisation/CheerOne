@@ -8,11 +8,13 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
+
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { auth, fsdb } from "../../firebase/firebase"; // adjust path if needed
 import { doc, getDoc } from "firebase/firestore";
+import { Plus } from "lucide-react";
 
 //@ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
@@ -27,6 +29,11 @@ const LocationFinder = () => {
   const navigate = useNavigate();
   const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
   const [pingMessage, setPingMessage] = useState("");
+
+  const navCreateFriend=()=>{
+    navigate("/create-contact");
+
+  }
 
   const friends = [
     { id: 1, name: "Alex Thompson", status: "online", distance: "0.2 miles", avatar: "AT", lastSeen: "now" },
@@ -107,6 +114,7 @@ console.log("location",location);
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-xl font-semibold">Find Friends</h1>
+           <Button onClick={()=>navCreateFriend()}><Plus/>Add a friend</Button>
           </div>
         </div>
       </header>
