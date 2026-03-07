@@ -20,6 +20,22 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+import { db } from "../../firebase/firebase";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+  arrayUnion,
+  setDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+
+import { Auth, getAuth } from "firebase/auth"
+
+
 import { ArrowLeft } from "lucide-react";
 import { useNavigate} from "react-router-dom"
 
@@ -48,22 +64,67 @@ export default function CreateContact() {
     )
   }
 
+  const auth = getAuth()
+
   const handleSubmit = async () => {
-    setIsSaving(true)
+  setIsSaving(true);
 
-    const payload = {
-      name,
-      email,
-      shareLocation,
+  try {
+    // 1. Search user by email
+    const q = query(
+      collection(db, "Users"),
+      where("email", "==", email)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      // User exists
+      const userDoc = snapshot.docs[0];
+      const userId = userDoc.id;
+
+      // 2. Add to ContactList lookup
+      const contactRef = doc(db, "ContactList", auth.currentUser.uid);
+
+      await setDoc(
+        contactRef,
+        {
+          contacts: arrayUnion(userId),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+      alert("Contact linked successfully");
+    } else {
+      
+      //await sendInviteEmail(email, name);
+
+     
+      const contactRef = doc(db, "ContactList", auth.currentUser.uid);
+
+      await setDoc(
+        contactRef,
+        {
+          invites: arrayUnion({
+            email,
+            name,
+            status: "pending",
+            sentAt: serverTimestamp(),
+          }),
+        },
+        { merge: true }
+      );
+
+      alert("User not found. Invite sent.");
     }
-
-    console.log("Creating contact:", payload)
-
-    // TODO: send to backend
-    setTimeout(() => {
-      setIsSaving(false)
-    }, 800)
+  } catch (err) {
+    console.error(err);
+    alert("Error creating contact");
+  } finally {
+    setIsSaving(false);
   }
+};
 
   return (
       <div>
