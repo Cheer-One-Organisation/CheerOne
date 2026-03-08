@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
-import { db } from "../../firebase/firebase";
+import { fsdb } from "../../firebase/firebase";
 import {
   collection,
   query,
@@ -72,7 +72,7 @@ export default function CreateContact() {
   try {
     // 1. Search user by email
     const q = query(
-      collection(db, "Users"),
+      collection(fsdb, "Users"),
       where("email", "==", email)
     );
 
@@ -84,7 +84,7 @@ export default function CreateContact() {
       const userId = userDoc.id;
 
       // 2. Add to ContactList lookup
-      const contactRef = doc(db, "ContactList", auth.currentUser.uid);
+      const contactRef = doc(fsdb, "ContactList", auth.currentUser.uid);
 
       await setDoc(
         contactRef,
@@ -101,7 +101,7 @@ export default function CreateContact() {
       //await sendInviteEmail(email, name);
 
      
-      const contactRef = doc(db, "ContactList", auth.currentUser.uid);
+      const contactRef = doc(fsdb, "ContactList", auth.currentUser.uid);
 
       await setDoc(
         contactRef,
