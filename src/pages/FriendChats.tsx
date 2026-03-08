@@ -29,6 +29,23 @@ import {
 
 import { auth, fsdb } from "../../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import CryptoJS from "crypto-js";
+
+const SECRET_KEY = "friend-chat-secret";
+
+const encryptMessage = (text: string) => {
+  return CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
+};
+
+const decryptMessage = (cipher: string) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(cipher, SECRET_KEY);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return decrypted || cipher;
+  } catch {
+    return cipher;
+  }
+};
 
 const FriendChats = () => {
   const navigate = useNavigate();
@@ -78,6 +95,9 @@ const FriendChats = () => {
         chatList.push({
           id: docSnap.id,
           ...chatData,
+          lastMessage: chatData.lastMessage
+            ? decryptMessage(chatData.lastMessage)
+            : "",
           otherUser: {
             id: otherUserId,
             ...otherUserData
@@ -107,10 +127,13 @@ const FriendChats = () => {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgList: any[] = [];
       snapshot.forEach((doc) => {
+        const data = doc.data();
+
         msgList.push({
           id: doc.id,
-          ...doc.data(),
-          isMe: doc.data().senderId === user.uid
+          ...data,
+          textMessage: decryptMessage(data.textMessage),
+          isMe: data.senderId === user.uid
         });
       });
       setMessages(msgList);
@@ -119,7 +142,7 @@ const FriendChats = () => {
     return () => unsubscribe();
   }, [selectedChat]);
 
-  
+
   // <Send messages>
 
   // fetch subcollection of selected IndividualChats for currentUser and otherselecteUser pair
@@ -132,7 +155,7 @@ const FriendChats = () => {
     await setDoc(
       chatRef,
       {// update the lastMessage being sent from Individual chats
-        lastMessage: newMessage,
+        lastMessage: encryptMessage(newMessage),
         lastTimeStamp: serverTimestamp()
       },
       { merge: true }
@@ -140,7 +163,7 @@ const FriendChats = () => {
 
     await addDoc(collection(chatRef, "Messages"), {
       senderId: user.uid,
-      textMessage: newMessage,
+      textMessage: encryptMessage(newMessage),
       timestamp: serverTimestamp()
     });
 
@@ -175,11 +198,10 @@ const FriendChats = () => {
                   <div
                     key={chat.id}
                     onClick={() => setSelectedChat(chat)}
-                    className={`p-4 rounded-lg cursor-pointer ${
-                      selectedChat?.id === chat.id
-                        ? "bg-primary/10 border border-primary/20"
-                        : "hover:bg-secondary"
-                    }`}
+                    className={`p-4 rounded-lg cursor-pointer ${selectedChat?.id === chat.id
+                      ? "bg-primary/10 border border-primary/20"
+                      : "hover:bg-secondary"
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar>
@@ -212,16 +234,14 @@ const FriendChats = () => {
                     {messages.map((msg) => (
                       <div
                         key={msg.id}
-                        className={`flex ${
-                          msg.isMe ? "justify-end" : "justify-start"
-                        }`}
+                        className={`flex ${msg.isMe ? "justify-end" : "justify-start"
+                          }`}
                       >
                         <div
-                          className={`max-w-[70%] p-3 rounded-2xl ${
-                            msg.isMe
-                              ? "gradient-primary text-primary-foreground"
-                              : "bg-secondary"
-                          }`}
+                          className={`max-w-[70%] p-3 rounded-2xl ${msg.isMe
+                            ? "gradient-primary text-primary-foreground"
+                            : "bg-secondary"
+                            }`}
                         >
                           <p>{msg.textMessage}</p>
                         </div>

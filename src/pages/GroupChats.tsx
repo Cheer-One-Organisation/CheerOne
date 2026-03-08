@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"; 
+import { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Send, Plus, Users, Search, MessageCircle, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,6 +21,22 @@ import {
 
 import { auth, fsdb } from "../../firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import CryptoJS from "crypto-js";
+
+const SECRET_KEY = "group-chat-secret";
+
+const encryptMessage = (text) => {
+  return CryptoJS.AES.encrypt(text, SECRET_KEY).toString();
+};
+
+const decryptMessage = (cipher) => {
+  try {
+    const bytes = CryptoJS.AES.decrypt(cipher, SECRET_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  } catch {
+    return cipher;
+  }
+};
 
 const GroupChats = () => {
   const navigate = useNavigate();
@@ -48,13 +64,23 @@ const GroupChats = () => {
       publicSnap.forEach((docSnap) => {
         const data = docSnap.data();
         if (data.participants?.some((p: any) => p.id === user.uid)) {
-          allGroups.push({ id: docSnap.id, collection: "Publicgroups", ...data });
+          allGroups.push({
+            id: docSnap.id,
+            collection: "Publicgroups",
+            ...data,
+            lastMessage: data.lastMessage ? decryptMessage(data.lastMessage) : ""
+          });
         }
       });
       privateSnap.forEach((docSnap) => {
         const data = docSnap.data();
         if (data.participants?.some((p: any) => p.id === user.uid)) {
-          allGroups.push({ id: docSnap.id, collection: "Privategroups", ...data });
+          allGroups.push({
+            id: docSnap.id,
+            collection: "Privategroups",
+            ...data,
+            lastMessage: data.lastMessage ? decryptMessage(data.lastMessage) : ""
+          });
         }
       });
       setGroups(allGroups);
@@ -73,7 +99,12 @@ const GroupChats = () => {
       const msgList: any[] = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
-        msgList.push({ id: doc.id, ...data, isMe: data.senderId === user.uid });
+        msgList.push({
+          id: doc.id,
+          ...data,
+          textMessage: decryptMessage(data.textMessage),
+          isMe: data.senderId === user.uid
+        });
       });
       setMessages(msgList);
       setTimeout(() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }), 50);
@@ -88,7 +119,7 @@ const GroupChats = () => {
 
     const tempMessage = {
       id: Date.now(),
-      textMessage: newMessage,
+      textMessage: encryptMessage(newMessage),
       senderId: currentUser.uid,
       senderName: currentUser.displayName || "You",
       timestamp: new Date(),
@@ -100,7 +131,7 @@ const GroupChats = () => {
     setGroups((prevGroups) =>
       prevGroups.map((g) =>
         g.id === selectedGroup.id
-          ? { ...g, lastMessage: tempMessage.textMessage, lastTimeStamp: tempMessage.timestamp }
+          ? { ...g, lastMessage: newMessage, lastTimeStamp: tempMessage.timestamp }
           : g
       )
     );
