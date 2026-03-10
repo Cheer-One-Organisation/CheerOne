@@ -1,5 +1,5 @@
-import { useState ,useEffect} from "react";
-import { ArrowLeft, MapPin, Send, Users, Radar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowLeft, MapPin, Send, Users, Radar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,58 +8,50 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
-
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { auth, fsdb } from "../../firebase/firebase"; // adjust path if needed
-import { doc, getDoc } from "firebase/firestore";
-import { Plus } from "lucide-react";
+import { auth, fsdb } from "../../firebase/firebase";
+import { doc, getDoc, getDocs, collection, query, where } from "firebase/firestore";
 
+// Leaflet default icon fix
 //@ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
-
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 const LocationFinder = () => {
   const navigate = useNavigate();
-  const [selectedFriends, setSelectedFriends] = useState<number[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [pingMessage, setPingMessage] = useState("");
+  const [friends, setFriends] = useState<any[]>([]);
+  const [location, setLocation] = useState<{ lat: number; lng: number }>({
+    lat: 0,
+    lng: 0,
+  });
 
-  const navCreateFriend=()=>{
+  const [recentPings, setRecentPings] = useState<any[]>([]);
+  const user = auth.currentUser;
+
+  const navCreateFriend = () => {
     navigate("/create-contact");
+  };
 
-  }
-
-  const friends = [
-    { id: 1, name: "Alex Thompson", status: "online", distance: "0.2 miles", avatar: "AT", lastSeen: "now" },
-    { id: 2, name: "Sarah Chen", status: "away", distance: "1.5 miles", avatar: "SC", lastSeen: "5 mins ago" },
-    { id: 3, name: "Mike Rodriguez", status: "online", distance: "0.8 miles", avatar: "MR", lastSeen: "now" },
-    { id: 4, name: "Emma Wilson", status: "offline", distance: "3.2 miles", avatar: "EW", lastSeen: "2 hours ago" },
-    { id: 5, name: "James Park", status: "online", distance: "0.5 miles", avatar: "JP", lastSeen: "now" },
-  ];
-
-  const recentPings = [
-    { id: 1, from: "Alex", message: "At the coffee shop on Main St!", time: "2 mins ago", responded: true },
-    { id: 2, from: "Sarah", message: "Anyone free for lunch?", time: "15 mins ago", responded: false },
-    { id: 3, from: "Mike", message: "Playing basketball at the park", time: "1 hour ago", responded: true },
-  ];
-
-  const toggleFriendSelection = (friendId: number) => {
-    setSelectedFriends(prev =>
+  const toggleFriendSelection = (friendId: string) => {
+    setSelectedFriends((prev) =>
       prev.includes(friendId)
-        ? prev.filter(id => id !== friendId)
+        ? prev.filter((id) => id !== friendId)
         : [...prev, friendId]
     );
   };
 
   const sendPing = () => {
     if (selectedFriends.length > 0) {
-      // In a real app, this would send the ping
+      // In a real app, send ping to Firestore
       setSelectedFriends([]);
       setPingMessage("");
     }
@@ -67,55 +59,100 @@ const LocationFinder = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'online': return 'bg-success';
-      case 'away': return 'bg-warning';
-      default: return 'bg-muted-foreground';
+      case "online":
+        return "bg-success";
+      case "away":
+        return "bg-warning";
+      default:
+        return "bg-muted-foreground";
     }
   };
 
-  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
-    { lat: 0, lng: 0 } // placeholder coordinates
-  );
- const user = auth.currentUser;
- // console.log(user.photoURL);
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchContacts = async () => {
       if (!user) return;
 
-      const docRef = doc(fsdb, "User", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
+      // 1️⃣ Get ContactList for current user
+      const contactSnap = await getDoc(doc(fsdb, "ContactList", user.uid));
+      if (!contactSnap.exists()) return;
+
+      const contactData = contactSnap.data();
+      const userIds: string[] = contactData.contacts || [];
+
+      // 2️⃣ Fetch User info
+      const usersQuery = query(
+        collection(fsdb, "User"),
+        where("userid", "in", userIds.slice(0, 10)) // Firestore "in" max 10
+      );
+      const usersSnap = await getDocs(usersQuery);
+
+      const friendsList = usersSnap.docs.map((docSnap) => {
         const data = docSnap.data();
-        console.log("data", data);
+        return {
+          id: data.userid,
+          name: data.displayName,
+          avatar: data.displayName
+            .split(" ")
+            .map((n: string) => n[0])
+            .join("")
+            .toUpperCase(),
+          lastSeen: data.lastping ? "now" : "offline",
+          status: data.locationlive ? "online" : "offline",
+          distance: "0.5 miles",
+          lastping: data.lastping,
+          email: data.email,
+        };
+      });
 
-        if (data.lastping) setLocation({ lat: data.lastping.latitude, lng: data.lastping.longitude });
+      setFriends(friendsList);
 
+      // 3️⃣ Set user's location
+      const userDoc = await getDoc(doc(fsdb, "User", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        if (userData.lastping)
+          setLocation({
+            lat: userData.lastping.latitude,
+            lng: userData.lastping.longitude,
+          });
       }
+
+      // 4️⃣ Populate recent pings (mock or from Firestore)
+      setRecentPings(
+        friendsList.slice(0, 3).map((f, i) => ({
+          id: i,
+          from: f.name.split(" ")[0],
+          message: "Sent you a ping",
+          time: "now",
+          responded: false,
+          userId: f.id,
+        }))
+      );
     };
 
-    fetchUser();
-  }, []);
+    fetchContacts();
+  }, [user]);
 
+  const goToFriendChat = (friendId: string) => {
+    navigate("/friends-chats");
+  };
 
-console.log("location",location);
-  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/dashboard")}
-              className="transition-smooth"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-xl font-semibold">Find Friends</h1>
-           <Button onClick={()=>navCreateFriend()}><Plus/>Add a friend</Button>
-          </div>
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <h1 className="text-xl font-semibold">Find Friends</h1>
+          <Button onClick={navCreateFriend}>
+            <Plus /> Add a friend
+          </Button>
         </div>
       </header>
 
@@ -136,10 +173,10 @@ console.log("location",location);
               onChange={(e) => setPingMessage(e.target.value)}
               className="w-full"
             />
-
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                {selectedFriends.length} friend{selectedFriends.length !== 1 ? 's' : ''} selected
+                {selectedFriends.length} friend
+                {selectedFriends.length !== 1 ? "s" : ""} selected
               </span>
               <Button
                 onClick={sendPing}
@@ -167,10 +204,11 @@ console.log("location",location);
                   <div
                     key={friend.id}
                     onClick={() => toggleFriendSelection(friend.id)}
-                    className={`p-4 rounded-lg cursor-pointer transition-smooth border-2 ${selectedFriends.includes(friend.id)
-                        ? 'border-primary bg-primary/5'
-                        : 'border-transparent hover:bg-secondary'
-                      }`}
+                    className={`p-4 rounded-lg cursor-pointer transition-smooth border-2 ${
+                      selectedFriends.includes(friend.id)
+                        ? "border-primary bg-primary/5"
+                        : "border-transparent hover:bg-secondary"
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -179,21 +217,25 @@ console.log("location",location);
                             {friend.avatar}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${getStatusColor(friend.status)}`} />
+                        <div
+                          className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card ${getStatusColor(
+                            friend.status
+                          )}`}
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium truncate">{friend.name}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-3 w-3" />
-                          <span>{friend.distance} away</span>
+                          <span>{friend.distance}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Last seen {friend.lastSeen}
                         </p>
                       </div>
                       <Badge
-                        variant={friend.status === 'online' ? 'default' : 'secondary'}
-                        className={friend.status === 'online' ? 'gradient-success text-success-foreground' : ''}
+                        variant={friend.status === "online" ? "default" : "secondary"}
+                        className={friend.status === "online" ? "gradient-success text-success-foreground" : ""}
                       >
                         {friend.status}
                       </Badge>
@@ -207,9 +249,7 @@ console.log("location",location);
           {/* Recent Pings */}
           <Card className="p-6 shadow-card">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-full gradient-accent flex items-center justify-center">
-                <MapPin className="h-4 w-4 text-white" />
-              </div>
+              <Users className="h-5 w-5 text-primary" />
               <h2 className="text-lg font-semibold">Recent Pings</h2>
             </div>
 
@@ -224,14 +264,13 @@ console.log("location",location);
                     <p className="text-sm mb-3">{ping.message}</p>
                     <div className="flex gap-2">
                       <Button
-                        onClick={() => navigate("/friend-chats")}
+                        onClick={() => goToFriendChat}
                         size="sm"
                         variant={ping.responded ? "secondary" : "default"}
                         className={!ping.responded ? "gradient-primary text-primary-foreground" : ""}
                         disabled={ping.responded}
                       >
                         {ping.responded ? "Responded" : "Respond"}
-
                       </Button>
                       <Button size="sm" variant="outline">
                         <MapPin className="mr-1 h-3 w-3" />
@@ -245,9 +284,14 @@ console.log("location",location);
           </Card>
         </div>
 
-        {/* Map Placeholder */}
+        {/* Map */}
         <Card className="mx-5 mt-5 p-0 shadow-card rounded-lg h-80">
-          <MapContainer key={`${location.lat}-${location.lng}`} center={[location.lat, location.lng]} zoom={13} style={{ height: "100%", width: "100%" }}>
+          <MapContainer
+            key={`${location.lat}-${location.lng}`}
+            center={[location.lat, location.lng]}
+            zoom={13}
+            style={{ height: "100%", width: "100%" }}
+          >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

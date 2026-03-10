@@ -89,7 +89,7 @@ export default function CreateContact() {
       const currentUserId = auth.currentUser.uid;
 
       const q = query(
-        collection(fsdb, "Users"),
+        collection(fsdb, "User"),
         where("email", "==", email)
       );
 
