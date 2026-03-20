@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 
 import { fsdb } from "../../firebase/firebase.js";
-import { collection, where, getDocs, query, doc, updateDoc, arrayUnion } from "firebase/firestore";
+import { collection, where, getDocs, getDoc, query, doc, updateDoc, arrayUnion, addDoc, serverTimestamp } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const PublicGroups = () => {
@@ -66,14 +66,37 @@ const PublicGroups = () => {
       await updateDoc(groupRef, {
         participants: arrayUnion(newParticipant),
       });
+      const groupSnap = await getDoc(groupRef);
+      const groupData = groupSnap.data();
+      if (!groupData) {
+        console.error("Group not found");
+        return;
+      }
+
+      const admins = groupData?.participants?.filter(
+        (p: any) => p.role === "admin"
+      );
+
+      for (const admin of admins) {
+        await addDoc(collection(fsdb, "Notifications"), {
+          userId: admin.id,
+          type: "join",
+          message: `${user.displayName || "Someone"} joined your group`,
+          groupId: groupId,
+          groupName: groupData.groupname || "Unnamed Group",
+          read: false,
+          createdAt: serverTimestamp(), 
+        });
+        console.log("added notification for:",admin.id);
+      }
 
       setGroups((prev) =>
         prev.map((g) =>
           g.id === groupId
             ? {
-                ...g,
-                participants: [...(g.participants || []), newParticipant],
-              }
+              ...g,
+              participants: [...(g.participants || []), newParticipant],
+            }
             : g
         )
       );
@@ -94,7 +117,7 @@ const PublicGroups = () => {
 
   const filteredGroups = groups.filter((group) => {
     const matchesSearch =
-      group.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      group.groupname?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       group.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesCategory =
@@ -190,14 +213,14 @@ const PublicGroups = () => {
 
                     <Avatar className="h-12 w-12">
                       <AvatarFallback className="gradient-primary text-white">
-                        {group.name?.substring(0, 2)}
+                        {group.groupname?.substring(0, 2)}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
 
                       <h3 className="font-semibold truncate">
-                        {group.name}
+                        {group.groupname}
                       </h3>
 
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -249,11 +272,10 @@ const PublicGroups = () => {
 
                   <Button
                     onClick={() => joinPublicGroup(group.id)}
-                    className={`w-full ${
-                      joined
-                        ? "bg-green-500 text-white"
-                        : "gradient-primary text-white"
-                    }`}
+                    className={`w-full ${joined
+                      ? "bg-green-500 text-white"
+                      : "gradient-primary text-white"
+                      }`}
                     disabled={joined}
                   >
                     {joined ? "Joined" : "Join Group"}

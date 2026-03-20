@@ -4,17 +4,19 @@ import { MessageCircle, MapPin, Users, Bell, ArrowLeft, Menu, UserCogIcon } from
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import heroBanner from "@/assets/hero-banner.jpg";
-import { getDocs, collection, doc,setDoc,GeoPoint } from "firebase/firestore"
+import { getDocs, collection, doc, setDoc, GeoPoint, query, where, onSnapshot } from "firebase/firestore"
 import { fsdb, auth } from "../../firebase/firebase.js";
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const usercollectionref = collection(fsdb, "User");
- const user = auth.currentUser;
-;
+  const user = auth.currentUser;
+
   const [userfildata, setuserfildata] = useState([]);
   const [curruserdata, setcurruserdata] = useState(null);
-  const [currentping ,setcurrentping]=useState({});
+  const [currentping, setcurrentping] = useState({});
+  const [unreadCount, setUnreadCount] = useState(0);
   console.log(currentping);
   const signOut = () => {
     navigate("/");
@@ -74,23 +76,23 @@ const Dashboard = () => {
   };
   const adduser = async () => {
     try {
-      
+
       navigator.geolocation.getCurrentPosition(async (pos) => {
-      console.log(pos.coords.latitude, pos.coords.longitude);
-      setcurrentping({lat:pos.coords.latitude, long:pos.coords.longitude});
-      
-      localStorage.setItem("currentping",JSON.stringify({lat:pos.coords.latitude, long:pos.coords.longitude}));
-       const adata = {
-        displayName: user.displayName,
-        email: user.email,
-        lastping: new GeoPoint(pos.coords.latitude,pos.coords.longitude),
-        userid: user.uid,
-        locationlive:true
-      };
-     await setDoc(doc(fsdb,"User",user.uid), adata,{merge:true});
+        console.log(pos.coords.latitude, pos.coords.longitude);
+        setcurrentping({ lat: pos.coords.latitude, long: pos.coords.longitude });
+
+        localStorage.setItem("currentping", JSON.stringify({ lat: pos.coords.latitude, long: pos.coords.longitude }));
+        const adata = {
+          displayName: user.displayName,
+          email: user.email,
+          lastping: new GeoPoint(pos.coords.latitude, pos.coords.longitude),
+          userid: user.uid,
+          locationlive: true
+        };
+        await setDoc(doc(fsdb, "User", user.uid), adata, { merge: true });
 
       });
-     
+
 
       getusers();
       finduserdata();
@@ -103,7 +105,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
 
-    
+
     getusers();
     finduserdata();
 
@@ -113,8 +115,24 @@ const Dashboard = () => {
       console.log(curruserdata);
 
     }
+
   }, []);
 
+  useEffect(() => {
+    if (!user) return;
+
+    const q = query(
+      collection(fsdb, "Notifications"),
+      where("userId", "==", user.uid),
+      where("read", "==", false)
+    );
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      setUnreadCount(snapshot.size);
+    });
+
+    return () => unsub();
+  }, [user]);
 
 
 
@@ -126,8 +144,19 @@ const Dashboard = () => {
         <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-md">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             {/* Notifications Button */}
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Bell className="h-4 w-4" /> Notifications
+            <Button
+              variant="outline"
+              size="sm"
+              className="relative flex items-center gap-2"
+              onClick={() => navigate("/notifications")}
+            >
+              <Bell className="h-4 w-4" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {unreadCount}
+                </span>
+              )}
+              Notifications
             </Button>
 
             {/* Sidebar Toggle */}

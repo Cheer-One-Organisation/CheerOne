@@ -17,7 +17,7 @@ import FriendChats from "./pages/FriendChats";
 import AboutContact from "./pages/AboutContact";
 import CreateContact from "./pages/CreateContact";
 import MyUserContact from "./pages/MyUserContact";
-
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -30,17 +30,17 @@ const App = () => (
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/" element={<Landing />} />
-          <Route path= "/sign-in" element={<SignIn/>}/>
+          <Route path="/sign-in" element={<SignIn />} />
           <Route path="/group-chats" element={<GroupChats />} />
           <Route path="/location-finder" element={<LocationFinder />} />
           <Route path="/public-groups" element={<PublicGroups />} />
-          <Route path="/create-new-group" element={<CreateNewGroup/>}/>
-          <Route path="/friend-chats" element = {<FriendChats/>}/>
-          <Route path="/about-group" element={<AboutGroup/>}/>
-          <Route path="/about-contact" element={<AboutContact/>}/>
-          <Route path="/create-contact" element={<CreateContact/>}/>
-          <Route path="/my-profile" element={<MyUserContact/>}/>
-
+          <Route path="/create-new-group" element={<CreateNewGroup />} />
+          <Route path="/friend-chats" element={<FriendChats />} />
+          <Route path="/about-group" element={<AboutGroup />} />
+          <Route path="/about-contact" element={<AboutContact />} />
+          <Route path="/create-contact" element={<CreateContact />} />
+          <Route path="/my-profile" element={<MyUserContact />} />
+          <Route path="/notifications" element={<Notifications />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

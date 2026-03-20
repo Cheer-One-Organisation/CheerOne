@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import React, { useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   ArrowLeft,
   Search,
@@ -15,25 +15,105 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { doc, getDoc } from "firebase/firestore";
+import { fsdb } from "../../firebase/firebase";
+
 
 type RoleFilter = "all" | "admin" | "member";
 
 const AboutGroup = () => {
   const navigate = useNavigate();
 
+  const location = useLocation();
+
+  const passedGroup = location.state?.group;
+
+  const [group, setGroup] = useState<any>(null);
+  const [members, setMembers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
+  /*  const friends1 = [
+     { id: 1, name: "Julia Fox", avatar: "JF", role: "admin" },
+     { id: 2, name: "Ivine Couger", avatar: "IC", role: "member" },
+     { id: 3, name: "Fiona Mables", avatar: "FM", role: "admin" },
+     { id: 4, name: "Greg Sweeney", avatar: "GS", role: "member" },
+   ];
+ 
 
-  const friends = [
-    { id: 1, name: "Julia Fox", avatar: "JF", role: "admin" },
-    { id: 2, name: "Ivine Couger", avatar: "IC", role: "member" },
-    { id: 3, name: "Fiona Mables", avatar: "FM", role: "admin" },
-    { id: 4, name: "Greg Sweeney", avatar: "GS", role: "member" },
-  ];
+ */
+  const [pri, setpri] = useState("Private")
+
+  useEffect(() => {
+    if (!passedGroup) return;
+
+    const fetchGroup = async () => {
+      const groupRef = doc(
+        fsdb,
+        passedGroup.collection,
+        passedGroup.id
+      );
+      if (passedGroup && !passedGroup.isprivate) {
+        setpri("Public");
+        console.log(group);
+        console.log("pri=",pri);
+
+      }
+      else{
+        console.log("group is empty");
+      }
+
+      const snap = await getDoc(groupRef);
+      if (!snap.exists()) return;
+
+      const data = snap.data();
+
+      setGroup({
+        id: snap.id,
+        ...data,
+        collection: passedGroup.collection
+      });
+      const participants = data.participants || [];
+
+      const membersWithNames = await Promise.all(
+        participants.map(async (p: any) => {
+          try {
+            const userRef = doc(fsdb, "User", p.id);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+              const userData = userSnap.data();
+
+              return {
+                id: p.id,
+                role: p.role,
+                displayName: userData.displayName || "Unknown0",
+              };
+            }
+            else {
+              return {
+                id: p.id,
+                role: p.role,
+                displayName: "Unknown1",
+              };
+            }
+          } catch {
+            return {
+              id: p.id,
+              role: p.role,
+              displayName: "Unknown2",
+            };
+          }
+        })
+      );
+      setMembers(membersWithNames);
+    };
+
+    fetchGroup();
+  }, [passedGroup]);
 
   const filteredMembers = useMemo(() => {
-    return friends.filter((member) => {
-      const matchesSearch = member.name
+    return members.filter((member) => {
+      const matchesSearch = member.displayName
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
 
@@ -42,7 +122,7 @@ const AboutGroup = () => {
 
       return matchesSearch && matchesRole;
     });
-  }, [friends, searchQuery, roleFilter]);
+  }, [members, searchQuery, roleFilter]);
 
   return (
     <section className="flex flex-col min-h-screen">
@@ -70,9 +150,9 @@ const AboutGroup = () => {
           </Avatar>
 
           <div>
-            <h2 className="text-xl font-semibold">Gaming Group</h2>
+            <h2 className="text-xl font-semibold">{group?.groupname}</h2>
             <p className="text-sm text-muted-foreground">
-              {friends.length} members • Private group
+              {members.length} members • {pri}
             </p>
           </div>
         </div>
@@ -82,9 +162,7 @@ const AboutGroup = () => {
       <Card className="mx-5 mt-5 p-6 shadow-card">
         <h3 className="text-lg font-semibold mb-2">About</h3>
         <p className="text-sm leading-relaxed text-muted-foreground">
-          A chill space for gamers to coordinate raids, share builds, and
-          occasionally argue about which console is superior. Be respectful,
-          stay active, and have fun.
+          {group?.description}
         </p>
       </Card>
 
@@ -142,7 +220,7 @@ const AboutGroup = () => {
                 </Avatar>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{member.name}</p>
+                  <p className="font-medium truncate"> {member.displayName || "Unknown User"}</p>
                 </div>
 
                 {member.role === "admin" ? (

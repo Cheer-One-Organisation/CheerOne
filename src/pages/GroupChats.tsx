@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
   collection,
@@ -41,6 +41,7 @@ const decryptMessage = (cipher) => {
 const GroupChats = () => {
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
 
   const [user, setUser] = useState<any>(null);
   const [groups, setGroups] = useState<any[]>([]);
@@ -151,7 +152,11 @@ const GroupChats = () => {
       { merge: true }
     );
   };
-
+  useEffect(() => {
+    if (location.state?.openGroup) {
+      setSelectedGroup(location.state.openGroup);
+    }
+  }, [location.state]);
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-card/80 backdrop-blur-md">
@@ -222,7 +227,7 @@ const GroupChats = () => {
                     <h3>{selectedGroup.groupname}</h3>
                     <p className="text-sm">{selectedGroup.participants?.length} members</p>
                   </div>
-                  <div className="ml-auto"><InfoIcon onClick={() => navigate("/about-group")} /></div>
+                  <div className="ml-auto"><InfoIcon onClick={() => navigate("/about-group", { state: { group: selectedGroup } })} /></div>
                 </div>
 
                 <ScrollArea ref={scrollRef} className="flex-1 p-6">
